@@ -1,4 +1,3 @@
-#include <iostream>
 #include <locale>
 #include <codecvt>
 #include "Common.hpp"
@@ -14,6 +13,8 @@ int main()
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	std::string process_name_utf8 = converter.to_bytes(process_name);
 
+	player->health->offsets = new std::vector<PVOID>();
+	player->health->offsets->push_back(reinterpret_cast<PVOID>(0xEC));
 
 	if (!GetProcId(process_name, &process_id))
 	{
@@ -34,15 +35,22 @@ int main()
 	std::cout << "[+] Found " << process_name_utf8 << "'s Module base address: " << modulebase_address << std::endl;
 
 
-	player->health->address = reinterpret_cast<PVOID>(reinterpret_cast<uintptr_t>(modulebase_address) + 0x0017E0A8);
-	std::cout << "[+] Dynamic Health address: " << player->health->address << std::endl;
 
-	system("pause");
 
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, process_id);
 	if (hProcess == NULL)
 	{
 		std::cout << "[!] OpenProcess failed with error code: " << GetLastError() << std::endl;
+		system("pause");
+		return 0;
+	}
+
+	player->health->address = reinterpret_cast<PVOID>(reinterpret_cast<uintptr_t>(modulebase_address) + 0x0017E0A8);
+	std::cout << "[+] Dynamic Health address: " << player->health->address << std::endl;
+
+	if (!FindDMAAddy(hProcess, player->health->address, *player->health->offsets, &player->health->address))
+	{
+		std::cout << "[!] FindDMAAddy failed with error code: " << GetLastError() << std::endl;
 		system("pause");
 		return 0;
 	}
@@ -68,6 +76,7 @@ int main()
 		return 0;
 	};
 
+	delete player->health->offsets;
 	delete player->health;
 	delete player;
 	CloseHandle(hProcess);

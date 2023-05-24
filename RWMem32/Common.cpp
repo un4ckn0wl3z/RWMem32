@@ -68,3 +68,23 @@ BOOL GetModuleBaseAddress(IN DWORD process_id, IN const wchar_t* module_name, OU
 	CloseHandle(hSnapshot);
 	return FALSE;
 }
+
+BOOL FindDMAAddy(IN HANDLE hProcess, IN PVOID init_ptr, IN std::vector<PVOID> offsets, OUT PVOID* pbaseAddress)
+{
+	PVOID address = init_ptr;
+
+	for (int i = 0; i < offsets.size(); ++i)
+	{
+		if ((ReadProcessMemory(hProcess, address, &address, sizeof(address), NULL)) == FALSE)
+		{
+			return FALSE;
+		}
+
+		address = reinterpret_cast<PVOID>(reinterpret_cast<uintptr_t>(address) + (uintptr_t)offsets[i]);
+
+	}
+
+	*pbaseAddress = address;
+	return TRUE;
+
+}
