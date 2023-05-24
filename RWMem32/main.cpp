@@ -6,13 +6,13 @@ int main()
 {
 	PVOID modulebase_address = NULL;
 	PPLAYER player = new PLAYER();
-	player->health = new PLAYER_DATA();
 	DWORD process_id = NULL;
 	const wchar_t* process_name = L"ac_client.exe";
 
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	std::string process_name_utf8 = converter.to_bytes(process_name);
 
+	player->health = new PLAYER_DATA();
 	player->health->offsets = new std::vector<PVOID>();
 	player->health->offsets->push_back(reinterpret_cast<PVOID>(0xEC));
 
